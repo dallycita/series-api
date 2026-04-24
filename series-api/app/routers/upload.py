@@ -1,14 +1,22 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
-import os, uuid
+import cloudinary
+import cloudinary.uploader
+import os
 from PIL import Image
 import io
 
 router = APIRouter(tags=["upload"])
 
-UPLOAD_DIR = "uploads"
-MAX_SIZE_BYTES = 1 * 1024 * 1024  # 1 MB
+MAX_SIZE_BYTES = 1 * 1024 * 1024
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
 @router.post("/upload", status_code=201)
 async def upload_image(file: UploadFile = File(...)):
@@ -19,17 +27,19 @@ async def upload_image(file: UploadFile = File(...)):
     if len(contents) > MAX_SIZE_BYTES:
         raise HTTPException(status_code=400, detail="La imagen no puede superar 1 MB")
 
-    # Validar que sea imagen real con Pillow
     try:
         img = Image.open(io.BytesIO(contents))
         img.load()
     except Exception:
         raise HTTPException(status_code=400, detail="Archivo de imagen inválido")
 
-    ext = file.filename.rsplit(".", 1)[-1].lower()
-    filename = f"{uuid.uuid4()}.{ext}"
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
-        f.write(contents)
+    try:
+        result = cloudinary.uploader.upload(
+            contents,
+            folder="series",
+            resource_type="image"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir imagen: {str(e)}")
 
-    return JSONResponse({"image_path": f"/uploads/{filename}"})
+    return JSONResponse({"image_path": result["secure_url"]})
