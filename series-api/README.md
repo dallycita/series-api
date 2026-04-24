@@ -4,7 +4,7 @@ API REST para gestionar una lista de series. Construida con FastAPI y PostgreSQL
 
 🔗 **Backend en producción:** https://series-api-pbls.onrender.com  
 📄 **Swagger UI:** https://series-api-pbls.onrender.com/docs  
-🖥️ **Repositorio del cliente:** https://github.com/dallycita/series-client *(actualizar con tu link real)*
+🖥️ **Repositorio del cliente:** https://github.com/dallycita/series-client
 
 ---
 
