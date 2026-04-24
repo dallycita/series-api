@@ -22,7 +22,7 @@ async def upload_image(file: UploadFile = File(...)):
     # Validar que sea imagen real con Pillow
     try:
         img = Image.open(io.BytesIO(contents))
-        img.verify()
+        img.load()
     except Exception:
         raise HTTPException(status_code=400, detail="Archivo de imagen inválido")
 
