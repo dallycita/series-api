@@ -18,7 +18,7 @@ def get_all_series(page: int, limit: int, q: str, sort: str, order: str):
         params.append(f"%{q}%")
 
     cur.execute(f"SELECT COUNT(*) FROM series {where}", params)
-    total = cur.fetchone()["count"]
+    total = int(cur.fetchone()["count"])
 
     cur.execute(
         f"SELECT * FROM series {where} ORDER BY {sort} {order} LIMIT %s OFFSET %s",
@@ -60,7 +60,7 @@ def create_series(data: dict):
 def update_series(series_id: int, data: dict):
     fields = {k: v for k, v in data.items() if v is not None}
     if not fields:
-        return None
+        return get_series_by_id(series_id)  # si no hay nada que cambiar, devuelve lo actual
     set_clause = ", ".join([f"{k} = %s" for k in fields])
     values = list(fields.values()) + [series_id]
     conn = get_connection()
